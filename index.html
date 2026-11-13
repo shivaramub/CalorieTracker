@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Calories">
+<meta name="theme-color" content="#f2f2f7">
+<title>Calorie Tracker</title>
+<style>
+:root{--bg:#f2f2f7;--card:#fff;--ink:#000;--mute:#8a8a8e;--line:rgba(60,60,67,.18);--blue:#007aff;--green:#34c759;--orange:#ff9500;--red:#ff3b30;--fill:rgba(120,120,128,.12);--bar:rgba(255,255,255,.8);
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root:not([data-theme="light"]){color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--card:#1c1c1e;--ink:#fff;--mute:#8e8e93;--line:rgba(84,84,88,.65);--blue:#0a84ff;--green:#30d158;--orange:#ff9f0a;--red:#ff453a;--fill:rgba(120,120,128,.24);--bar:rgba(44,44,46,.8)}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+main{max-width:520px;margin:0 auto;padding:12px 16px 130px}
+h1{font-size:34px;line-height:1.1;letter-spacing:-.022em;margin:14px 4px 0;font-weight:700}
+.by{margin:4px 4px 18px;font-size:13px;font-style:italic;color:var(--mute)}
+button{font-family:inherit;cursor:pointer}
+.bar{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.bar button{width:40px;height:40px;border-radius:50%;border:0;background:var(--fill);color:var(--blue);font-size:22px;line-height:1}
+.bar input{flex:1;height:40px;border-radius:10px;border:0;background:var(--fill);color:var(--ink);font:inherit;font-weight:600;text-align:center;padding:0 12px}
+.card{background:var(--card);border-radius:12px;padding:0 16px;margin-bottom:12px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;min-height:54px;border-bottom:.5px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row label{flex:1;font-weight:500}
+.row label small{display:block;color:var(--mute);font-weight:400;font-size:12px;line-height:1.25}
+.row input{width:84px;height:36px;border:0;background:transparent;color:var(--ink);font:inherit;font-size:20px;font-weight:600;text-align:right;padding:0 4px;border-radius:8px}
+.row input::placeholder{color:var(--mute);font-weight:400}
+.row input:focus{outline:none;background:var(--fill)}
+.row input:disabled{color:var(--mute);-webkit-text-fill-color:var(--mute)}
+.row button{min-width:64px;height:32px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:15px;font-weight:600;padding:0 14px}
+.row button:disabled{background:var(--fill);color:var(--mute)}
+.row.junk label:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--orange);margin-right:8px;vertical-align:1px}
+.items{margin:-4px 6px 12px;color:var(--mute);font-size:13px}
+.chip{border:0;background:var(--fill);color:var(--ink);border-radius:14px;padding:5px 11px;margin:2px 4px 2px 0;font-size:13px;font-weight:600}
+.chip.ask{background:var(--red);color:#fff}
+.tgt label{font-weight:500}
+.total{display:flex;justify-content:space-between;align-items:baseline;padding:16px;margin-bottom:14px;background:var(--card);border-radius:12px}
+.total span{color:var(--mute);font-size:15px}
+.total b{font-size:44px;line-height:1;letter-spacing:-.025em;font-weight:700}
+.big{display:block;width:100%;height:56px;border:0;border-radius:14px;background:var(--blue);color:#fff;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.big:active{opacity:.85}.big:disabled{opacity:.6}
+.small{display:flex;gap:8px;margin:10px 0 0}
+.small button{flex:1;height:36px;border:0;border-radius:10px;background:var(--fill);color:var(--blue);font-size:14px;font-weight:600}
+.small.dim button{color:var(--mute);font-weight:500}
+.msg{min-height:20px;margin:12px 4px 18px;color:var(--mute);font-size:13px;text-align:center}
+h2{font-size:13px;font-weight:400;text-transform:uppercase;letter-spacing:.02em;color:var(--mute);margin:8px 16px 6px}
+.hist{list-style:none;margin:0;padding:0}
+.hist li{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:.5px solid var(--line)}
+.hist li:last-child{border-bottom:0}
+.hist .d{flex:1}.hist .d small{display:block;color:var(--mute);font-size:12px}
+.hist b{font-size:17px}
+.hist button{border:0;background:none;font-size:15px;color:var(--blue);padding:8px 2px}
+.hist button.del{color:var(--red)}
+.empty{color:var(--mute);padding:14px 0;border:0!important}
+.gsd{color:var(--mute);font-size:14px;padding:6px 16px}
+.gsd summary{padding:10px 0;cursor:pointer}
+.gsd input{display:block;width:100%;height:42px;margin:6px 0;border-radius:10px;border:0;background:var(--fill);color:var(--ink);font:inherit;font-size:15px;padding:0 12px}
+.gsd button{height:40px;margin:6px 0 12px;padding:0 18px;border-radius:10px;border:0;background:var(--blue);color:#fff;font-size:15px;font-weight:600}
+.status{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));max-width:496px;margin:0 auto;padding:13px 16px;border-radius:18px;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);box-shadow:0 8px 28px rgba(0,0,0,.14);border:.5px solid var(--line);display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;z-index:5}
+.status i{width:10px;height:10px;border-radius:50%;background:var(--green);flex:none}
+.status.warn i{background:var(--orange)}.status.bad i{background:var(--red)}.status.bad span{color:var(--red)}
+</style>
+</head>
+<body>
+<main>
+<h1>Calorie Tracker</h1>
+<p class="by">by shivaram ub</p>
+
+<div class="bar">
+  <button id="prev" aria-label="Previous day">‹</button>
+  <input type="date" id="date" aria-label="Date">
+  <button id="next" aria-label="Next day">›</button>
+</div>
+
+<div class="card"><div class="row tgt"><label for="target">Daily target (kcal)</label><input id="target" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" disabled><button id="tbtn">Edit</button></div></div>
+
+<div class="card">
+  <div class="row"><label for="in-b">Breakfast</label><input id="in-b" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0"><button id="bt-b">Set</button></div>
+  <div class="row"><label for="in-l">Lunch</label><input id="in-l" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0"><button id="bt-l">Set</button></div>
+  <div class="row"><label for="in-d">Dinner</label><input id="in-d" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0"><button id="bt-d">Set</button></div>
+  <div class="row junk"><label for="in-j">Junk<small>Anything in between. Add as often as needed.</small></label><input id="in-j" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0"><button id="bt-j">Add</button></div>
+</div>
+<div class="items" id="items"></div>
+
+<div class="total"><span>Total for the day</span><b id="total">0</b></div>
+
+<button class="big" id="both">Save to Notes + Google Sheets</button>
+<div class="small"><button id="share">Save to Notes</button><button id="gs">Save to Google Sheets</button></div>
+<div class="small dim"><button id="copy">Copy</button><button id="clear">Clear day</button></div>
+<div class="msg" id="msg" role="status"></div>
+
+<h2>History</h2>
+<div class="card"><ul class="hist" id="hist"></ul></div>
+
+<div class="card"><details class="gsd" id="gsd"><summary>Google Sheets setup</summary>
+  <input id="gsurl" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Web app URL">
+  <input id="gskey" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Secret key">
+  <button id="gssave">Save settings</button>
+</details></div>
+</main>
+<div class="status" id="status" role="status"><i></i><span id="stxt"></span></div>
+<script>
+(function(){
+  var KEY="calorieTracker.v1", TKEY="calorieTracker.target", GURL="calorieTracker.gsUrl", GKEY="calorieTracker.gsKey";
+  var mem={}, meals=["b","l","d"], sayT, busy=false;
+  function $(i){return document.getElementById(i)}
+  function load(){try{mem=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){mem={}}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){say("Could not save on this browser.")}}
+  function gget(k){try{return localStorage.getItem(k)||""}catch(x){return ""}}
+  function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
+  function num(v){var n=parseFloat(v);return isNaN(n)||n<0?0:n}
+  function say(t){$("msg").textContent=t;clearTimeout(sayT);if(t)sayT=setTimeout(function(){$("msg").textContent=""},5000)}
+  function day(){return $("date").value}
+  function target(){var t=parseInt(gget(TKEY),10);return t>0?t:1800}
+  function renderStatus(total){
+    var t=target(),left=t-total,el=$("status"),m,c;
+    if(total===0){c="ok";m="Target "+t+" kcal. Nothing logged yet. Stay inside the line today."}
+    else if(left>t*0.2){c="ok";m=left+" kcal left. On track. Keep it up."}
+    else if(left>0){c="warn";m="Only "+left+" kcal left. Choose carefully."}
+    else if(left===0){c="warn";m="Target hit exactly. You are done eating for today."}
+    else{c="bad";m="Over by "+(-left)+" kcal. That is overeating. Stop here, no more food today, and make tomorrow count."}
+    el.className="status "+c;$("stxt").textContent=m;
+  }
+  function jsum(e){return (e&&e.j||[]).reduce(function(s,n){return s+num(n)},0)}
+  function sum(e){return meals.reduce(function(s,k){return s+num(e&&e[k])},0)+jsum(e)}
+  function entry(){var d=day();if(!mem[d])mem[d]={lock:{},j:[]};if(!mem[d].lock)mem[d].lock={};if(!mem[d].j)mem[d].j=[];return mem[d]}
+  function show(){
+    var e=mem[day()]||{lock:{},j:[]},lock=e.lock||{};
+    meals.forEach(function(k){
+      var inp=$("in-"+k),bt=$("bt-"+k),locked=!!lock[k];
+      inp.value=(e[k]===undefined||e[k]===null)?"":e[k];
+      inp.disabled=locked;bt.disabled=locked;bt.textContent=locked?"Set ✓":"Set";
+    });
+    $("in-j").value="";
+    var j=e.j||[];
+    var box=$("items");box.innerHTML="";
+    if(j.length){
+      var lab=document.createElement("span");lab.textContent="Junk today ("+j.length+"): ";box.appendChild(lab);
+      j.forEach(function(n,i){
+        var c=document.createElement("button");c.className="chip";c.textContent="+"+n+" ✕";c.setAttribute("aria-label","Remove "+n);
+        c.onclick=function(){
+          if(c.dataset.a!=="1"){c.dataset.a="1";c.className="chip ask";c.textContent="Remove?";setTimeout(function(){c.dataset.a="";c.className="chip";c.textContent="+"+n+" ✕"},3000);return}
+          var d=entry();d.j.splice(i,1);save();show();history();
+        };
+        box.appendChild(c);
+      });
+      var tt=document.createElement("span");tt.textContent=" = "+jsum(e);box.appendChild(tt);
+    }
+    $("total").textContent=sum(e);renderStatus(sum(e));
+  }
+  function setMeal(k){
+    var v=$("in-"+k).value.replace(/[^0-9]/g,"");
+    if(v===""){say("Enter calories first.");return}
+    var e=entry();e[k]=v;e.lock[k]=true;save();show();history();
+  }
+  function addJunk(){
+    var v=$("in-j").value.replace(/[^0-9]/g,"");
+    if(v===""||+v===0){say("Enter junk calories first.");return}
+    var e=entry();e.j.push(+v);save();show();history();
+  }
+  function fmt(s){var p=s.split("-");return new Date(+p[0],p[1]-1,+p[2]).toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
+  function history(){
+    var keys=Object.keys(mem).sort().reverse(),ul=$("hist");
+    ul.innerHTML="";
+    if(!keys.length){var li=document.createElement("li");li.className="empty";li.textContent="No entries yet. Set your first meal above.";ul.appendChild(li);return}
+    keys.forEach(function(k){
+      var e=mem[k],li=document.createElement("li");
+      li.innerHTML='<div class="d"><span></span><small></small></div><b></b><button>Open</button><button class="del">Delete</button>';
+      li.children[0].children[0].textContent=fmt(k);
+      li.children[0].children[1].textContent="B "+num(e.b)+"  L "+num(e.l)+"  D "+num(e.d)+"  J "+jsum(e);
+      li.children[1].textContent=sum(e);
+      li.children[2].onclick=function(){$("date").value=k;show();window.scrollTo(0,0)};
+      li.children[3].onclick=function(){var b=this;if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Sure?";setTimeout(function(){b.dataset.c="";b.textContent="Delete"},3000);return}delete mem[k];save();show();history()};
+      ul.appendChild(li);
+    });
+  }
+  function shift(n){var p=day().split("-"),d=new Date(+p[0],p[1]-1,+p[2]+n);$("date").value=iso(d);show()}
+  function summary(){
+    var e=mem[day()]||{},line="--------------------------------------------------";
+    return line+"\n"+day()+"\nBreakfast: "+num(e.b)+"\nLunch: "+num(e.l)+"\nDinner: "+num(e.d)+"\nJunk: "+jsum(e)+"\nTotal: "+sum(e)+" / "+target()+"\n"+line+"\n";
+  }
+  function copy(){
+    var t=summary();
+    function fallback(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");say("Copied. Paste it into Notes.")}catch(x){say("Copy failed.")}document.body.removeChild(a)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){say("Copied. Paste it into Notes.")},fallback)}else fallback();
+  }
+  function payload(){var e=mem[day()]||{};return {key:gget(GKEY),date:day(),breakfast:num(e.b),lunch:num(e.l),dinner:num(e.d),junk:jsum(e),total:sum(e),target:target()}}
+  function sendSheets(){
+    var u=gget(GURL);
+    if(!u||!gget(GKEY)){$("gsd").open=true;return Promise.resolve({ok:false,msg:"Add your URL and key in Google Sheets setup below."})}
+    var ctl=new AbortController(),t=setTimeout(function(){ctl.abort()},15000);
+    return fetch(u,{method:"POST",body:JSON.stringify(payload()),signal:ctl.signal,redirect:"follow"})
+      .then(function(r){return r.json()})
+      .then(function(j){clearTimeout(t);return j&&j.ok?{ok:true,msg:"Saved to Google Sheets."}:{ok:false,msg:"Sheet error: "+((j&&j.error)||"unknown")}})
+      .catch(function(){clearTimeout(t);return {ok:false,msg:"Could not confirm. Check the sheet or try again."}});
+  }
+  function openNotes(){window.location.href="shortcuts://run-shortcut?name="+encodeURIComponent("Calorie Notes")+"&input=text&text="+encodeURIComponent(summary())}
+  load();
+  $("date").value=iso(new Date());
+  $("target").value=target();
+  $("gsurl").value=gget(GURL);$("gskey").value=gget(GKEY);
+  meals.forEach(function(k){
+    $("bt-"+k).onclick=function(){setMeal(k)};
+    $("in-"+k).addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"")});
+  });
+  $("in-j").addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"")});
+  $("bt-j").onclick=addJunk;
+  $("date").addEventListener("change",show);
+  $("prev").onclick=function(){shift(-1)};
+  $("next").onclick=function(){shift(1)};
+  $("target").addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"")});
+  $("tbtn").onclick=function(){
+    var inp=$("target");
+    if(inp.disabled){inp.disabled=false;inp.focus();inp.select();this.textContent="Set"}
+    else{
+      var v=parseInt(inp.value,10);
+      if(!(v>0)){say("Enter a valid target.");return}
+      try{localStorage.setItem(TKEY,v)}catch(x){}
+      inp.disabled=true;this.textContent="Edit";renderStatus(sum(mem[day()]));
+    }
+  };
+  $("gssave").onclick=function(){try{localStorage.setItem(GURL,$("gsurl").value.trim());localStorage.setItem(GKEY,$("gskey").value.trim());say("Google Sheets settings saved.")}catch(x){say("Could not save settings.")}};
+  $("copy").onclick=copy;
+  $("share").onclick=openNotes;
+  $("gs").onclick=function(){say("Sending to Google Sheets...");sendSheets().then(function(r){say(r.msg)})};
+  $("both").onclick=function(){
+    if(busy)return;busy=true;$("both").disabled=true;say("Saving...");
+    sendSheets().then(function(r){
+      if(!r.ok){say(r.msg.replace(/\.?$/,".")+" Nothing was added to Notes.");busy=false;$("both").disabled=false;return}
+      say("Saved to Google Sheets. Opening Notes...");
+      setTimeout(function(){openNotes();busy=false;$("both").disabled=false},400);
+    });
+  };
+  var clr=0;
+  $("clear").onclick=function(){
+    var b=this;
+    if(!clr){clr=1;b.textContent="Tap again to confirm";setTimeout(function(){clr=0;b.textContent="Clear day"},3000);return}
+    clr=0;b.textContent="Clear day";delete mem[day()];save();show();history();say("Day cleared.");
+  };
+  show();history();
+})();
+</script>
+</body>
+</html>
