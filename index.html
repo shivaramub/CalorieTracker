@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Calories">
+<title>Calorie Tracker</title>
+<style>
+:root{--bg:#f2f5f1;--card:#fff;--ink:#17211c;--mute:#66736c;--line:#dde4de;--acc:#2c7a58;--accsoft:#e3f1ea;--bad:#b3402f;--junk:#b5651d;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root:not([data-theme="light"]){color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1512;--card:#18211c;--ink:#e8efea;--mute:#8fa097;--line:#27332c;--acc:#4fc08d;--accsoft:#1c3328;--bad:#ef8a78;--junk:#e8a15f}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:520px;margin:0 auto;padding:16px 16px 120px}
+h1{font-size:28px;letter-spacing:-.02em;margin:8px 0 14px;font-weight:700}
+.bar{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.bar button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:20px}
+.bar input{flex:1;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;padding:0 12px;text-align:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 16px}
+.row{display:flex;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row label{font-weight:600;flex:1}
+.row label small{display:block;color:var(--mute);font-weight:400;font-size:13px}
+.row input{width:96px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:19px;text-align:right;padding:0 12px}
+.row input:disabled{opacity:.6}
+.row input:focus,.bar input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.row button{width:70px;height:44px;border-radius:10px;border:0;background:var(--acc);color:#fff;font:inherit;font-weight:600}
+.row button:disabled{background:var(--accsoft);color:var(--acc)}
+.row.junk button{background:var(--junk)}
+.row.junk label{color:var(--ink)}
+.items{margin:-4px 0 10px;color:var(--mute);font-size:14px}
+.total{margin:14px 0;background:var(--accsoft);border-radius:16px;padding:16px;display:flex;justify-content:space-between;align-items:baseline}
+.total b{font-size:38px;letter-spacing:-.02em;color:var(--acc)}
+.actions{display:flex;gap:8px;margin-bottom:10px}
+.actions button{flex:1;height:46px;border-radius:12px;border:0;background:var(--acc);color:#fff;font:inherit;font-weight:600}
+.actions button.alt{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+h2{font-size:20px;margin:0 0 8px}
+.hist{list-style:none;margin:0;padding:0}
+.hist li{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.hist li:last-child{border-bottom:0}
+.hist .d{flex:1}
+.hist .d small{display:block;color:var(--mute);font-size:13px}
+.hist button{border:0;background:none;font:inherit;color:var(--acc);padding:8px 4px}
+.hist button.del{color:var(--bad)}
+.empty{color:var(--mute);padding:12px 0}
+.msg{min-height:20px;color:var(--mute);font-size:14px;margin:0 0 14px}
+.tgt{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px}
+.tgt label{color:var(--mute);font-size:15px}
+.tgt input{width:96px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:18px;text-align:right;padding:0 12px}
+.tgt input:focus{outline:2px solid var(--acc);outline-offset:1px}
+.tgt label{flex:1}
+.tgt input:disabled{opacity:.7}
+.tgt button{height:40px;padding:0 16px;border-radius:10px;border:0;background:#25684a;color:#fff;font:inherit;font-weight:600}
+.status{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));font-weight:600;text-align:center;color:#fff;background:#25684a}
+.status.warn{background:#9a5516}
+.status.bad{background:#a8322a}
+</style>
+</head>
+<body>
+<main>
+<h1>Calorie Tracker</h1>
+<div class="tgt"><label for="target">Daily target (kcal, stay below)</label><input id="target" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" disabled><button id="tbtn">Edit</button></div>
+<div class="bar">
+  <button id="prev" aria-label="Previous day">‹</button>
+  <input type="date" id="date" aria-label="Date">
+  <button id="next" aria-label="Next day">›</button>
+</div>
+<div class="card" id="rows">
+  <div class="row"><label for="in-b">Breakfast</label><input id="in-b" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0"><button id="bt-b">Set</button></div>
+  <div class="row"><label for="in-l">Lunch</label><input id="in-l" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0"><button id="bt-l">Set</button></div>
+  <div class="row"><label for="in-d">Dinner</label><input id="in-d" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0"><button id="bt-d">Set</button></div>
+  <div class="row junk"><label for="in-j">Junk<small>Anything in between. Add as many times as needed.</small></label><input id="in-j" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0"><button id="bt-j">Add</button></div>
+</div>
+<div class="items" id="items"></div>
+<div class="total"><span>Total for the day</span><b id="total">0</b></div>
+<div class="actions">
+  <button id="share">Save to Notes</button>
+  <button id="copy" class="alt">Copy</button>
+  <button id="clear" class="alt">Clear day</button>
+</div>
+<div class="msg" id="msg" role="status"></div>
+<h2>History</h2>
+<div class="card"><ul class="hist" id="hist"></ul></div>
+</main>
+<div class="status" id="status" role="status"></div>
+<script>
+(function(){
+  var KEY="calorieTracker.v1", mem={}, meals=["b","l","d"];
+  function $(i){return document.getElementById(i)}
+  function load(){try{mem=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){mem={}}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){say("Could not save on this browser.")}}
+  function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
+  function num(v){var n=parseFloat(v);return isNaN(n)||n<0?0:n}
+  function say(t){$("msg").textContent=t;if(t)setTimeout(function(){$("msg").textContent=""},2500)}
+  function day(){return $("date").value}
+  var TKEY="calorieTracker.target";
+  function target(){try{var t=parseInt(localStorage.getItem(TKEY),10);return t>0?t:1800}catch(x){return 1800}}
+  function renderStatus(total){
+    var t=target(),left=t-total,el=$("status"),m,c;
+    if(total===0){c="ok";m="Target "+t+" kcal. Nothing logged yet. Stay inside the line today."}
+    else if(left>t*0.2){c="ok";m=left+" kcal left. On track. Keep it up."}
+    else if(left>0){c="warn";m="Only "+left+" kcal left. Choose carefully."}
+    else if(left===0){c="warn";m="Target hit exactly. You are done eating for today."}
+    else{c="bad";m="Over by "+(-left)+" kcal. That is overeating. Stop here, no more food today, and make tomorrow count."}
+    el.className="status "+c;el.textContent=m;
+  }
+  function jsum(e){return (e&&e.j||[]).reduce(function(s,n){return s+num(n)},0)}
+  function sum(e){return meals.reduce(function(s,k){return s+num(e&&e[k])},0)+jsum(e)}
+  function entry(){var d=day();if(!mem[d])mem[d]={lock:{},j:[]};if(!mem[d].lock)mem[d].lock={};if(!mem[d].j)mem[d].j=[];return mem[d]}
+  function show(){
+    var e=mem[day()]||{lock:{},j:[]},lock=e.lock||{};
+    meals.forEach(function(k){
+      var inp=$("in-"+k),bt=$("bt-"+k),locked=!!lock[k];
+      inp.value=(e[k]===undefined||e[k]===null)?"":e[k];
+      inp.disabled=locked;bt.disabled=locked;bt.textContent=locked?"Set ✓":"Set";
+    });
+    $("in-j").value="";
+    var j=e.j||[];
+    $("items").textContent=j.length?"Junk today: "+j.map(function(n){return "+"+n}).join("  ")+"  =  "+jsum(e):"";
+    $("total").textContent=sum(e);renderStatus(sum(e));
+  }
+  function setMeal(k){
+    var v=$("in-"+k).value.replace(/[^0-9]/g,"");
+    if(v===""){say("Enter calories first.");return}
+    var e=entry();e[k]=v;e.lock[k]=true;save();show();history();
+  }
+  function addJunk(){
+    var v=$("in-j").value.replace(/[^0-9]/g,"");
+    if(v===""||+v===0){say("Enter junk calories first.");return}
+    var e=entry();e.j.push(+v);save();show();history();
+  }
+  function fmt(s){var p=s.split("-");return new Date(+p[0],p[1]-1,+p[2]).toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}
+  function history(){
+    var keys=Object.keys(mem).sort().reverse(),ul=$("hist");
+    ul.innerHTML="";
+    if(!keys.length){var li=document.createElement("li");li.className="empty";li.textContent="No entries yet. Set your first meal above.";ul.appendChild(li);return}
+    keys.forEach(function(k){
+      var e=mem[k],li=document.createElement("li");
+      li.innerHTML='<div class="d"><span></span><small></small></div><b></b><button>Open</button><button class="del">Delete</button>';
+      li.children[0].children[0].textContent=fmt(k);
+      li.children[0].children[1].textContent="B "+num(e.b)+"  L "+num(e.l)+"  D "+num(e.d)+"  J "+jsum(e);
+      li.children[1].textContent=sum(e);
+      li.children[2].onclick=function(){$("date").value=k;show();window.scrollTo(0,0)};
+      li.children[3].onclick=function(){var b=this;if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Sure?";setTimeout(function(){b.dataset.c="";b.textContent="Delete"},3000);return}delete mem[k];save();show();history()};
+      ul.appendChild(li);
+    });
+  }
+  function shift(n){var p=day().split("-"),d=new Date(+p[0],p[1]-1,+p[2]+n);$("date").value=iso(d);show()}
+  function summary(){
+    var e=mem[day()]||{},line="--------------------------------------------------";
+    return line+"\n"+day()+"\nBreakfast: "+num(e.b)+"\nLunch: "+num(e.l)+"\nDinner: "+num(e.d)+"\nJunk: "+jsum(e)+"\nTotal: "+sum(e)+" / "+target()+"\n"+line+"\n";
+  }
+  function copy(){
+    var t=summary();
+    function fallback(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");say("Copied. Paste it into Notes.")}catch(x){say("Copy failed.")}document.body.removeChild(a)}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){say("Copied. Paste it into Notes.")},fallback)}else fallback();
+  }
+  load();
+  $("date").value=iso(new Date());
+  $("target").value=target();
+  $("target").disabled=true;
+  $("target").addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"")});
+  $("tbtn").onclick=function(){
+    var inp=$("target");
+    if(inp.disabled){inp.disabled=false;inp.focus();inp.select();this.textContent="Set"}
+    else{
+      var v=parseInt(inp.value,10);
+      if(!(v>0)){say("Enter a valid target.");return}
+      try{localStorage.setItem(TKEY,v)}catch(x){}
+      inp.disabled=true;this.textContent="Edit";renderStatus(sum(mem[day()]));
+    }
+  };
+  meals.forEach(function(k){
+    $("bt-"+k).onclick=function(){setMeal(k)};
+    $("in-"+k).addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"")});
+  });
+  $("in-j").addEventListener("input",function(){this.value=this.value.replace(/[^0-9]/g,"")});
+  $("bt-j").onclick=addJunk;
+  $("date").addEventListener("change",show);
+  $("prev").onclick=function(){shift(-1)};
+  $("next").onclick=function(){shift(1)};
+  $("copy").onclick=copy;
+  $("share").onclick=function(){
+    window.location.href="shortcuts://run-shortcut?name="+encodeURIComponent("Calorie Notes")+"&input=text&text="+encodeURIComponent(summary());
+  };
+  var clr=0;
+  $("clear").onclick=function(){
+    var b=this;
+    if(!clr){clr=1;b.textContent="Tap again to confirm";setTimeout(function(){clr=0;b.textContent="Clear day"},3000);return}
+    clr=0;b.textContent="Clear day";delete mem[day()];save();show();history();say("Day cleared.");
+  };
+  show();history();
+})();
+</script>
+</body>
+</html>
